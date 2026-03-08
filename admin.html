@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Ultimate Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #020617; 
+            color: white; font-family: 'Hind Siliguri', sans-serif; 
+        }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-active { border-bottom: 3px solid #00f2fe; color: #00f2fe; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- LOGIN SECTION -->
+    <div id="login_sec" class="max-w-md mx-auto mt-20 glass p-8 rounded-3xl text-center">
+        <h1 class="text-2xl font-black mb-6 text-cyan-400">এডমিন লগইন</h1>
+        <input type="password" id="admin_pass" placeholder="পাসওয়ার্ড দিন" class="w-full p-4 rounded-xl bg-white/10 mb-4 outline-none border border-white/20 focus:border-cyan-400">
+        <button onclick="login()" class="w-full bg-cyan-500 py-4 rounded-xl font-black text-black hover:bg-cyan-400 transition">প্রবেশ করুন</button>
+    </div>
+
+    <!-- MAIN PANEL -->
+    <div id="main_panel" class="hidden max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-black text-cyan-400">Admin Dashboard</h1>
+            <button onclick="location.reload()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm border border-red-500/50">লগ আউট</button>
+        </header>
+
+        <!-- STATS CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm">মোট ইউজার</p>
+                <h2 id="stat_total_users" class="text-3xl font-black">0</h2>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm">পেন্ডিং উইথড্র</p>
+                <h2 id="stat_pending_withdraw" class="text-3xl font-black text-yellow-400">0</h2>
+            </div>
+            <div class="glass p-6 rounded-2xl">
+                <p class="text-gray-400 text-sm">মোট পেমেন্ট (সফল)</p>
+                <h2 id="stat_total_paid" class="text-3xl font-black text-green-400">0</h2>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex gap-8 mb-6 border-b border-white/10">
+            <button id="tab_w" onclick="switchTab('withdrawals')" class="pb-2 font-bold tab-active">উইথড্র রিকোয়েস্ট</button>
+            <button id="tab_u" onclick="switchTab('users')" class="pb-2 font-bold text-gray-400">ইউজার ম্যানেজমেন্ট</button>
+        </div>
+
+        <!-- WITHDRAWALS TABLE -->
+        <div id="sec_withdrawals" class="glass rounded-2xl overflow-x-auto">
+            <table class="w-full text-left min-w-[600px]">
+                <thead class="bg-white/5 text-sm">
+                    <tr>
+                        <th class="p-4">ইউজার ID</th>
+                        <th class="p-4">পদ্ধতি</th>
+                        <th class="p-4">নাম্বার</th>
+                        <th class="p-4">পরিমাণ</th>
+                        <th class="p-4">একশন</th>
+                    </tr>
+                </thead>
+                <tbody id="withdraw_list" class="divide-y divide-white/5">
+                    <tr><td colspan="5" class="p-10 text-center opacity-50">লোডিং হচ্ছে...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- USER MANAGEMENT SECTION -->
+        <div id="sec_users" class="hidden space-y-6">
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="font-bold mb-4 text-cyan-400">ইউজার খুঁজুন ও এডিট করুন</h3>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="search_id" placeholder="User ID (e.g. 1234567)" class="flex-1 p-4 rounded-xl bg-white/10 outline-none border border-white/10">
+                    <button onclick="searchUser()" class="bg-white text-black px-8 py-4 rounded-xl font-bold">খুঁজুন</button>
+                </div>
+            </div>
+
+            <div id="user_edit_card" class="hidden glass p-6 rounded-2xl border-l-4 border-cyan-400">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <p class="text-sm text-gray-400">নাম: <span id="edit_name" class="text-white font-bold">-</span></p>
+                        <p class="text-sm text-gray-400">আইডি: <span id="edit_id" class="text-white font-bold">-</span></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-2 text-gray-400">ইউজার ব্যালেন্স (৳)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="edit_balance" class="bg-black/40 p-3 rounded-lg w-full outline-none border border-white/10">
+                            <button onclick="updateBalance()" class="bg-green-600 px-6 rounded-lg font-bold">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBNYIOf4viWb4Fr8LsBD7UITQ_TvihUyTU",
+            authDomain: "taka-income-ac393.firebaseapp.com",
+            databaseURL: "https://taka-income-ac393-default-rtdb.firebaseio.com",
+            projectId: "taka-income-ac393",
+            storageBucket: "taka-income-ac393.firebasestorage.app",
+            messagingSenderId: "121449287637",
+            appId: "1:121449287637:web:653a87ac1c56a5396ff75c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // লগইন ফাংশন
+        window.login = () => {
+            const pass = document.getElementById('admin_pass').value;
+            if(pass === "admin123") { 
+                document.getElementById('login_sec').classList.add('hidden');
+                document.getElementById('main_panel').classList.remove('hidden');
+                loadDashboardData();
+            } else {
+                alert("ভুল পাসওয়ার্ড!");
+            }
+        }
+
+        // ট্যাব সুইচ
+        window.switchTab = (tab) => {
+            document.getElementById('sec_withdrawals').classList.toggle('hidden', tab !== 'withdrawals');
+            document.getElementById('sec_users').classList.toggle('hidden', tab !== 'users');
+            document.getElementById('tab_w').classList.toggle('tab-active', tab === 'withdrawals');
+            document.getElementById('tab_u').classList.toggle('tab-active', tab === 'users');
+            document.getElementById('tab_w').classList.toggle('text-gray-400', tab !== 'withdrawals');
+            document.getElementById('tab_u').classList.toggle('text-gray-400', tab !== 'users');
+        }
+
+        function loadDashboardData() {
+            // ইউজারের সংখ্যা
+            onValue(ref(db, 'users'), (snap) => {
+                document.getElementById('stat_total_users').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+            });
+
+            // উইথড্র রিকোয়েস্ট লোড
+            onValue(ref(db, 'withdraws'), (snap) => {
+                let html = "";
+                let pendingCount = 0;
+                let totalPaid = 0;
+
+                if(snap.exists()) {
+                    const data = snap.val();
+                    Object.keys(data).reverse().forEach(key => {
+                        const w = data[key];
+                        if(w.status === "Pending") {
+                            pendingCount++;
+                            html += `
+                            <tr class="text-sm border-b border-white/5 hover:bg-white/5 transition">
+                                <td class="p-4 text-xs font-mono">${w.userId}</td>
+                                <td class="p-4"><span class="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-[10px] font-bold uppercase">${w.method}</span></td>
+                                <td class="p-4 font-bold text-cyan-400">${w.num}</td>
+                                <td class="p-4 font-black">৳${w.amt}</td>
+                                <td class="p-4 flex gap-2">
+                                    <button onclick="processWithdraw('${key}', '${w.userId}', ${w.amt}, 'Paid')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">PAID</button>
+                                    <button onclick="processWithdraw('${key}', '${w.userId}', ${w.amt}, 'Rejected')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">REJECT</button>
+                                </td>
+                            </tr>`;
+                        } else if(w.status === "Paid") {
+                            totalPaid += parseFloat(w.amt);
+                        }
+                    });
+                }
+                document.getElementById('withdraw_list').innerHTML = html || "<tr><td colspan='5' class='p-10 text-center opacity-30 font-bold'>কোন পেন্ডিং রিকোয়েস্ট নেই</td></tr>";
+                document.getElementById('stat_pending_withdraw').innerText = pendingCount;
+                document.getElementById('stat_total_paid').innerText = "৳" + totalPaid.toFixed(2);
+            });
+        }
+
+        // পেমেন্ট প্রসেস (পেইড অথবা রিজেক্ট)
+        window.processWithdraw = async (key, userId, amount, status) => {
+            if(!confirm(`আপনি কি এই রিকোয়েস্টটি ${status} করতে চান?`)) return;
+
+            try {
+                if(status === 'Rejected') {
+                    // রিজেক্ট করলে ব্যালেন্স ফেরত দেওয়া
+                    const userRef = ref(db, `users/${userId}/balance`);
+                    await runTransaction(userRef, (currentBalance) => {
+                        return (currentBalance || 0) + parseFloat(amount);
+                    });
+                }
+                
+                // স্ট্যাটাস আপডেট
+                await update(ref(db, 'withdraws/' + key), { status: status });
+                alert(`${status} সফল হয়েছে!`);
+            } catch (error) {
+                alert("ত্রুটি: " + error.message);
+            }
+        }
+
+        // ইউজার সার্চ
+        window.searchUser = async () => {
+            const id = document.getElementById('search_id').value.trim();
+            if(!id) return alert("আইডি দিন");
+            
+            const snap = await get(ref(db, 'users/' + id));
+            if(snap.exists()) {
+                const u = snap.val();
+                document.getElementById('user_edit_card').classList.remove('hidden');
+                document.getElementById('edit_name').innerText = u.name || "N/A";
+                document.getElementById('edit_id').innerText = id;
+                document.getElementById('edit_balance').value = u.balance || 0;
+            } else {
+                alert("ইউজার পাওয়া যায়নি!");
+                document.getElementById('user_edit_card').classList.add('hidden');
+            }
+        }
+
+        // ব্যালেন্স সরাসরি আপডেট
+        window.updateBalance = async () => {
+            const id = document.getElementById('edit_id').innerText;
+            const newBal = parseFloat(document.getElementById('edit_balance').value);
+            
+            try {
+                await update(ref(db, 'users/' + id), { balance: newBal });
+                alert("ব্যালেন্স আপডেট সফল!");
+            } catch (e) {
+                alert("ব্যর্থ হয়েছে!");
+            }
+        }
+
+    </script>
+</body>
+</html>
